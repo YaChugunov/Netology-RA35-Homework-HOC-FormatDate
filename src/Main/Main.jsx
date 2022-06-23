@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import moment from 'moment';
-
+// --- --- --- --- --- --- --- --- --- ---
 //
 // Проверяем число на валидность
 //
@@ -20,44 +20,33 @@ function isValidDate(value) {
 }
 //
 //
-//
-const Counter = (props) => {
-  console.log(props);
-  const { value, decOne, addOne } = props;
-  return (
-    <div>
-      <button onClick={decOne}>-</button>
-      <span>{value}</span>
-      <button onClick={addOne}>+</button>
-    </div>
-  );
-};
-function withLogger(Component) {
-  return class extends React.Component {
-    render() {
-      console.log(this.props);
-      return <Component {...this.props} />;
-    }
-  };
-}
-
-const LoggedComponent = withLogger(Counter);
-//
-//
-//
 function DateTime(props) {
   return <p className="date">{props.date}</p>;
 }
-
-function DateTimePretty(isValid, Datetime) {
-  return function (...args) {
-    if (!args.every(isValid)) {
-      throw new Error('Передан некорректный аргумент');
-    }
-    return Datetime.apply(this, args);
+//
+// Обертка для функции DateTime
+function DateTimePretty(Component) {
+  return function (props, ...args) {
+    let now = moment();
+    let videoTimestamp = moment(props.date);
+    let diffDays = now.diff(videoTimestamp, 'days');
+    let diffHours = now.diff(videoTimestamp, 'hours');
+    let relatedVideoTimestamp =
+      diffDays > 10
+        ? 'Очень давно'
+        : diffDays > 1
+        ? diffDays + ' дн. назад'
+        : diffHours > 1
+        ? '5 часов назад'
+        : '12 минут назад';
+    console.log(relatedVideoTimestamp);
+    // return Component.apply(this, [props, ...args]);
+    return Component.apply(this, [props, ...args]);
   };
 }
-
+const WrappedDatetime = DateTimePretty(DateTime);
+//
+//
 function Video(props) {
   return (
     <div className="video">
@@ -67,7 +56,7 @@ function Video(props) {
         allow="autoplay; encrypted-media"
         allowfullscreen
       ></iframe>
-      <DateTime date={props.date} />
+      <WrappedDatetime date={props.date} />
     </div>
   );
 }
@@ -80,7 +69,7 @@ export default function App() {
   const [list, setList] = useState([
     {
       url: 'https://www.youtube.com/embed/rN6nlNC9WQA?rel=0&amp;controls=0&amp;showinfo=0',
-      date: '2017-07-31 13:24:00',
+      date: '2022-06-23 13:24:00',
     },
     {
       url: 'https://www.youtube.com/embed/dVkK36KOcqs?rel=0&amp;controls=0&amp;showinfo=0',
@@ -88,7 +77,7 @@ export default function App() {
     },
     {
       url: 'https://www.youtube.com/embed/xGRjCa49C6U?rel=0&amp;controls=0&amp;showinfo=0',
-      date: '2018-02-03 23:16:00',
+      date: '2022-06-23 17:24:00',
     },
     {
       url: 'https://www.youtube.com/embed/RK1K2bCg4J8?rel=0&amp;controls=0&amp;showinfo=0',
@@ -96,7 +85,7 @@ export default function App() {
     },
     {
       url: 'https://www.youtube.com/embed/TKmGU77INaM?rel=0&amp;controls=0&amp;showinfo=0',
-      date: '2018-01-01 16:17:00',
+      date: '2022-06-21 11:11:00',
     },
     {
       url: 'https://www.youtube.com/embed/TxbE79-1OSI?rel=0&amp;controls=0&amp;showinfo=0',
@@ -107,11 +96,6 @@ export default function App() {
   return (
     <>
       <VideoList list={list} />
-      <LoggedComponent
-        value={this.state.value}
-        addOne={() => this.setState(({ value }) => ({ value: value + 1 }))}
-        decOne={() => this.setState(({ value }) => ({ value: value - 1 }))}
-      />
     </>
   );
 }
