@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import moment from 'moment';
-// --- --- --- --- --- --- --- --- --- ---
+
 //
 // Проверяем число на валидность
-//
 function isValidNumber(value) {
   return typeof value === 'number';
 }
 //
 // Проверяем дату на валидность
-//
 function isValidDate(value) {
   let isValid = new Date(value);
   return (
@@ -19,31 +17,51 @@ function isValidDate(value) {
   );
 }
 //
-//
+// Презентационный функциональный компонент, просто выводящий дату
 function DateTime(props) {
   return <p className="date">{props.date}</p>;
 }
 //
-// Обертка для функции DateTime
+// Обертка для функционального компонента DateTime, форматирующая дату к требуемому виду
+// Для дат старше более 10 дней сделал вывод в начальном формате
 function DateTimePretty(Component) {
-  return function (props, ...args) {
-    let now = moment();
-    let videoTimestamp = moment(props.date);
-    let diffDays = now.diff(videoTimestamp, 'days');
-    let diffHours = now.diff(videoTimestamp, 'hours');
-    let relatedVideoTimestamp =
-      diffDays > 10
-        ? 'Очень давно'
-        : diffDays > 1
-        ? diffDays + ' дн. назад'
-        : diffHours > 1
-        ? '5 часов назад'
-        : '12 минут назад';
-    console.log(relatedVideoTimestamp);
-    // return Component.apply(this, [props, ...args]);
-    return Component.apply(this, [props, ...args]);
+  return class extends React.Component {
+    constructor(props) {
+      super(props);
+      this.state = {
+        strTimestamp: null,
+      };
+    }
+    // Начальный рендер
+    componentDidMount() {
+      let now = moment();
+      let initialTimestamp = moment(this.props.date);
+      let diffDays = now.diff(initialTimestamp, 'days');
+      let diffHours = now.diff(initialTimestamp, 'hours');
+      let strTimestamp = isValidDate(initialTimestamp)
+        ? diffDays > 10
+          ? initialTimestamp.format('DD.MM.YYYY H:mm:ss')
+          : diffDays > 1
+          ? diffDays + ' дн. назад'
+          : diffHours > 1
+          ? '5 часов назад'
+          : '12 минут назад'
+        : 'Неправильная дата';
+      console.log(strTimestamp);
+      this.setState({
+        strTimestamp: strTimestamp,
+      });
+    }
+    componentDidUpdate() {}
+    componentWillUnmount() {}
+
+    render() {
+      // return <Component {...this.props} />;
+      return <Component date={this.state.strTimestamp} />;
+    }
   };
 }
+// Создаем компонент для вывода
 const WrappedDatetime = DateTimePretty(DateTime);
 //
 //
@@ -60,7 +78,8 @@ function Video(props) {
     </div>
   );
 }
-
+//
+//
 function VideoList(props) {
   return props.list.map((item) => <Video url={item.url} date={item.date} />);
 }
@@ -69,7 +88,7 @@ export default function App() {
   const [list, setList] = useState([
     {
       url: 'https://www.youtube.com/embed/rN6nlNC9WQA?rel=0&amp;controls=0&amp;showinfo=0',
-      date: '2022-06-23 13:24:00',
+      date: 'Неправильная дата',
     },
     {
       url: 'https://www.youtube.com/embed/dVkK36KOcqs?rel=0&amp;controls=0&amp;showinfo=0',
@@ -81,7 +100,7 @@ export default function App() {
     },
     {
       url: 'https://www.youtube.com/embed/RK1K2bCg4J8?rel=0&amp;controls=0&amp;showinfo=0',
-      date: '2018-01-03 12:10:00',
+      date: '2022-06-24 12:10:00',
     },
     {
       url: 'https://www.youtube.com/embed/TKmGU77INaM?rel=0&amp;controls=0&amp;showinfo=0',
